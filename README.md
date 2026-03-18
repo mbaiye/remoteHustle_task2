@@ -41,7 +41,7 @@ git push origin main
 The deploy workflow runs automatically. Your site will be live at:
 
 ```
-https://<your-username>.github.io/<repo-name>/
+https://mbaiye.github.io/remoteHustle_task2/
 ```
 
 ---
