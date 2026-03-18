@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Remote Hustle – Work From Anywhere</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #6c47ff;
+      --primary-dark: #4f2fd1;
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #38bdf8;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.2rem 2rem;
+      background: var(--surface);
+      border-bottom: 1px solid #ffffff10;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(10px);
+    }
+    .logo { font-size: 1.4rem; font-weight: 700; color: var(--primary); letter-spacing: -0.5px; }
+    .logo span { color: var(--accent); }
+    nav ul { list-style: none; display: flex; gap: 2rem; }
+    nav ul a { color: var(--muted); text-decoration: none; font-size: 0.95rem; transition: color .2s; }
+    nav ul a:hover { color: var(--text); }
+    .nav-cta {
+      background: var(--primary);
+      color: #fff !important;
+      padding: .5rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: background .2s !important;
+    }
+    .nav-cta:hover { background: var(--primary-dark) !important; }
+
+    /* HERO */
+    .hero {
+      min-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 4rem 2rem;
+      background: radial-gradient(ellipse at 50% 0%, #6c47ff22 0%, transparent 70%);
+    }
+    .badge {
+      display: inline-block;
+      background: #6c47ff22;
+      color: var(--accent);
+      border: 1px solid #38bdf830;
+      padding: .3rem 1rem;
+      border-radius: 999px;
+      font-size: .8rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 1.5rem;
+    }
+    .hero h1 {
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 800;
+      line-height: 1.15;
+      max-width: 760px;
+      margin-bottom: 1.4rem;
+    }
+    .hero h1 .highlight { color: var(--primary); }
+    .hero p {
+      font-size: 1.15rem;
+      color: var(--muted);
+      max-width: 580px;
+      margin-bottom: 2.5rem;
+    }
+    .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center; }
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      padding: .8rem 2rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: background .2s, transform .15s;
+    }
+    .btn-primary:hover { background: var(--primary-dark); transform: translateY(-2px); }
+    .btn-outline {
+      border: 1.5px solid #ffffff25;
+      color: var(--text);
+      padding: .8rem 2rem;
+      border-radius: 10px;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: border-color .2s;
+    }
+    .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+
+    /* STATS */
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 3rem;
+      flex-wrap: wrap;
+      margin-top: 4rem;
+      padding: 1.5rem;
+      background: var(--surface);
+      border-radius: 16px;
+      border: 1px solid #ffffff0d;
+      max-width: 700px;
+      width: 100%;
+    }
+    .stat-item { text-align: center; }
+    .stat-item .num { font-size: 2rem; font-weight: 800; color: var(--primary); }
+    .stat-item .label { font-size: .85rem; color: var(--muted); margin-top: .2rem; }
+
+    /* FEATURES */
+    .features {
+      padding: 5rem 2rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .section-label {
+      text-align: center;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-size: .8rem;
+      color: var(--primary);
+      font-weight: 700;
+      margin-bottom: .8rem;
+    }
+    .section-title {
+      text-align: center;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      max-width: 520px;
+      margin: 0 auto 3.5rem;
+    }
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--surface);
+      border: 1px solid #ffffff0d;
+      border-radius: 16px;
+      padding: 2rem;
+      transition: border-color .2s, transform .2s;
+    }
+    .card:hover { border-color: var(--primary); transform: translateY(-4px); }
+    .card-icon {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    .card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: .6rem; }
+    .card p { color: var(--muted); font-size: .95rem; }
+
+    /* HOW IT WORKS */
+    .how {
+      background: var(--surface2);
+      padding: 5rem 2rem;
+    }
+    .how-inner { max-width: 900px; margin: 0 auto; }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 2rem;
+      margin-top: 3rem;
+    }
+    .step { text-align: center; }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--primary);
+      font-size: 1.2rem;
+      font-weight: 800;
+      margin-bottom: 1rem;
+    }
+    .step h4 { font-weight: 700; margin-bottom: .5rem; }
+    .step p { color: var(--muted); font-size: .92rem; }
+
+    /* CTA BANNER */
+    .cta-banner {
+      background: linear-gradient(135deg, var(--primary) 0%, #9333ea 100%);
+      padding: 4rem 2rem;
+      text-align: center;
+    }
+    .cta-banner h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); font-weight: 800; margin-bottom: 1rem; }
+    .cta-banner p { color: #ffffffcc; margin-bottom: 2rem; font-size: 1.05rem; }
+    .btn-white {
+      background: #fff;
+      color: var(--primary);
+      padding: .85rem 2.2rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      text-decoration: none;
+      display: inline-block;
+      transition: transform .15s;
+    }
+    .btn-white:hover { transform: translateY(-2px); }
+
+    /* FOOTER */
+    footer {
+      background: var(--surface);
+      border-top: 1px solid #ffffff0d;
+      padding: 2rem;
+      text-align: center;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      nav ul { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="logo">Remote<span>Hustle</span></div>
+    <ul>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#how">How It Works</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li><a href="#" class="nav-cta">Get Started</a></li>
+    </ul>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="badge">&#127759; 100% Remote • Fully Distributed</div>
+    <h1>Work Smarter.<br /><span class="highlight">Hustle Remotely.</span></h1>
+    <p>Remote Hustle connects ambitious professionals with top-tier remote opportunities and the tools to make every workday count.</p>
+    <div class="btn-group">
+      <a href="#" class="btn-primary">Start Hustling Free</a>
+      <a href="#features" class="btn-outline">Learn More</a>
+    </div>
+    <div class="stats">
+      <div class="stat-item"><div class="num">12K+</div><div class="label">Active Members</div></div>
+      <div class="stat-item"><div class="num">340+</div><div class="label">Remote Jobs Posted</div></div>
+      <div class="stat-item"><div class="num">98%</div><div class="label">Satisfaction Rate</div></div>
+      <div class="stat-item"><div class="num">50+</div><div class="label">Countries</div></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <section class="features" id="features">
+    <p class="section-label">Why Remote Hustle</p>
+    <h2 class="section-title">Everything You Need to Work Remotely</h2>
+    <p class="section-sub">Tools, community, and opportunities built for the modern remote professional.</p>
+    <div class="cards">
+      <div class="card">
+        <span class="card-icon">&#128187;</span>
+        <h3>Smart Job Board</h3>
+        <p>Curated remote roles from vetted companies — filtered by skill, timezone, and salary range.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#128101;</span>
+        <h3>Community Hub</h3>
+        <p>Connect with thousands of remote workers, share tips, and grow your network from anywhere.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#128200;</span>
+        <h3>Productivity Tools</h3>
+        <p>Built-in task tracking, time zones, and project management integrations to keep you focused.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#128274;</span>
+        <h3>Secure Profiles</h3>
+        <p>End-to-end encrypted profiles with role-based access — your data, your control.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#128640;</span>
+        <h3>Career Booster</h3>
+        <p>Resume reviews, mock interviews, and skill assessments tailored to remote-first roles.</p>
+      </div>
+      <div class="card">
+        <span class="card-icon">&#127760;</span>
+        <h3>Global Payments</h3>
+        <p>Get paid in your currency. We support 40+ payment methods across 130+ countries.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="how-inner">
+      <p class="section-label">How It Works</p>
+      <h2 class="section-title">Three Steps to Your Remote Life</h2>
+      <div class="steps">
+        <div class="step">
+          <div class="step-num">1</div>
+          <h4>Create Your Profile</h4>
+          <p>Sign up in under 2 minutes. Showcase your skills, experience, and availability.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <h4>Browse Opportunities</h4>
+          <p>Filter through hundreds of vetted remote roles matched to your profile.</p>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <h4>Start Hustling</h4>
+          <p>Apply, connect, and land your dream remote role — then get to work.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-banner" id="contact">
+    <h2>Ready to Join the Remote Revolution?</h2>
+    <p>Thousands of professionals already hustle remotely with us. Don't get left behind.</p>
+    <a href="#" class="btn-white">Join Remote Hustle Today</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>&copy; 2026 Remote Hustle. Built with purpose. Hosted on <a href="https://pages.github.com" target="_blank">GitHub Pages</a>.</p>
+    <p style="margin-top:.5rem;">SSL secured &bull; Daily backups &bull; 99.9% uptime</p>
+  </footer>
+
+</body>
+</html>

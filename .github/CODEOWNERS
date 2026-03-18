@@ -1,0 +1,10 @@
+# Code Owners – Remote Hustle
+
+# All files require review from a maintainer before merging to main
+*       @YOUR_GITHUB_USERNAME
+
+# Website files require additional sign-off
+website/    @YOUR_GITHUB_USERNAME
+
+# Workflow changes require the owner (most privileged reviewer)
+.github/    @YOUR_GITHUB_USERNAME

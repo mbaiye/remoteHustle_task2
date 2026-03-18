@@ -1,0 +1,102 @@
+name: Daily Automated Backup
+
+on:
+  schedule:
+    - cron: "0 2 * * *"   # Every day at 02:00 UTC
+  workflow_dispatch:        # Allow manual trigger for testing / restore verification
+
+permissions:
+  contents: write   # needed to push to the backups branch
+
+jobs:
+  backup:
+    name: Backup Website Files
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout main branch (source) ──────────────────────────────────
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0   # full history
+
+      # ── 2. Configure Git identity ──────────────────────────────────────────
+      - name: Configure Git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      # ── 3. Create a timestamped backup archive ─────────────────────────────
+      - name: Create backup archive
+        run: |
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+          echo "TIMESTAMP=$TIMESTAMP" >> $GITHUB_ENV
+
+          # Create a compressed archive of the website folder
+          tar -czf "backup-${TIMESTAMP}.tar.gz" website/
+
+          # Also generate a SHA-256 checksum for integrity verification
+          sha256sum "backup-${TIMESTAMP}.tar.gz" > "backup-${TIMESTAMP}.sha256"
+
+          echo "Backup archive created: backup-${TIMESTAMP}.tar.gz"
+
+      # ── 4. Switch to / create the backups branch ──────────────────────────
+      - name: Push backup to backups branch
+        run: |
+          TIMESTAMP="${{ env.TIMESTAMP }}"
+
+          # Fetch or create the backups branch
+          git fetch origin backups 2>/dev/null || true
+          git checkout -B backups origin/backups 2>/dev/null || git checkout --orphan backups
+
+          # On orphan branch, remove tracked main-branch files
+          git rm -rf . --quiet 2>/dev/null || true
+
+          # Bring in the newly created backup files
+          git checkout main -- "backup-${TIMESTAMP}.tar.gz" "backup-${TIMESTAMP}.sha256" 2>/dev/null || \
+            cp /home/runner/work/*/*/backup-${TIMESTAMP}.* . 2>/dev/null || true
+
+          # Also keep a latest-backup symlink / copy for easy restore
+          cp "backup-${TIMESTAMP}.tar.gz" latest-backup.tar.gz
+          cp "backup-${TIMESTAMP}.sha256" latest-backup.sha256
+
+          # Write a backup log entry
+          echo "${TIMESTAMP} | $(sha256sum backup-${TIMESTAMP}.tar.gz | cut -d' ' -f1)" >> backup-log.txt
+
+          git add .
+          git commit -m "backup: automated snapshot ${TIMESTAMP}" || echo "Nothing new to commit."
+          git push origin backups
+
+      # ── 5. Clean up old backups (keep last 30) ────────────────────────────
+      - name: Prune old backups (keep 30 most recent)
+        run: |
+          git checkout backups
+
+          # List all backup archives sorted by name (ISO timestamps sort correctly)
+          mapfile -t ALL_BACKUPS < <(ls backup-*.tar.gz 2>/dev/null | sort)
+          KEEP=30
+
+          if [ "${#ALL_BACKUPS[@]}" -gt "$KEEP" ]; then
+            DELETE_COUNT=$(( ${#ALL_BACKUPS[@]} - KEEP ))
+            for i in $(seq 0 $(( DELETE_COUNT - 1 ))); do
+              FILE="${ALL_BACKUPS[$i]}"
+              BASE="${FILE%.tar.gz}"
+              git rm -f "${BASE}.tar.gz" "${BASE}.sha256" 2>/dev/null || true
+              echo "Pruned: $FILE"
+            done
+            git commit -m "backup: pruned backups older than 30 days" || true
+            git push origin backups
+          else
+            echo "No pruning needed (${#ALL_BACKUPS[@]} backups stored)."
+          fi
+
+      # ── 6. Summary ────────────────────────────────────────────────────────
+      - name: Print backup summary
+        run: |
+          echo "========================================"
+          echo " Backup completed successfully"
+          echo " Timestamp : ${{ env.TIMESTAMP }}"
+          echo " Branch    : backups"
+          echo " Archive   : backup-${{ env.TIMESTAMP }}.tar.gz"
+          echo "========================================"

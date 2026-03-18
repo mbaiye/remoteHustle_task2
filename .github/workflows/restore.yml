@@ -1,0 +1,79 @@
+name: Restore from Backup
+
+# This workflow is triggered MANUALLY only (for restore testing or disaster recovery)
+on:
+  workflow_dispatch:
+    inputs:
+      backup_timestamp:
+        description: "Backup timestamp to restore (e.g. 2026-03-18T02-00-00Z). Leave blank to use latest."
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  restore:
+    name: Restore Website from Backup
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout backups branch
+        uses: actions/checkout@v4
+        with:
+          ref: backups
+          fetch-depth: 1
+
+      - name: Configure Git
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Select backup file
+        id: select
+        run: |
+          TS="${{ github.event.inputs.backup_timestamp }}"
+          if [ -z "$TS" ]; then
+            ARCHIVE="latest-backup.tar.gz"
+            CHECKSUM="latest-backup.sha256"
+            echo "Using latest backup."
+          else
+            ARCHIVE="backup-${TS}.tar.gz"
+            CHECKSUM="backup-${TS}.sha256"
+          fi
+          echo "ARCHIVE=$ARCHIVE" >> $GITHUB_ENV
+          echo "CHECKSUM=$CHECKSUM" >> $GITHUB_ENV
+          ls -lh "$ARCHIVE" "$CHECKSUM"
+
+      - name: Verify backup integrity (SHA-256)
+        run: |
+          echo "Verifying checksum..."
+          sha256sum -c "${{ env.CHECKSUM }}" && echo "Integrity check PASSED." || (echo "Integrity check FAILED!" && exit 1)
+
+      - name: Extract backup
+        run: |
+          mkdir -p restored-site
+          tar -xzf "${{ env.ARCHIVE }}" -C restored-site
+          echo "Files restored:"
+          find restored-site -type f
+
+      - name: Switch to main and apply restored files
+        run: |
+          git fetch origin main
+          git checkout main
+
+          # Overwrite website folder with restored content
+          rm -rf website/
+          cp -r restored-site/website/ website/
+
+          git add website/
+          git commit -m "restore: applied backup ${{ env.ARCHIVE }}" || echo "No changes detected (already up to date)."
+          git push origin main
+
+      - name: Restore summary
+        run: |
+          echo "========================================"
+          echo " Restore completed successfully"
+          echo " Source    : ${{ env.ARCHIVE }}"
+          echo " Target    : main branch / website/"
+          echo "========================================"
